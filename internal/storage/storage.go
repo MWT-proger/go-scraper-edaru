@@ -2,10 +2,10 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 	"embed"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"
 
 	"github.com/MWT-proger/go-scraper-edaru/configs"
@@ -16,7 +16,7 @@ import (
 var embedMigrations embed.FS
 
 type PgStorage struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
 // Init(ctx context.Context) error Инициализирует соединение
@@ -27,7 +27,7 @@ func (s *PgStorage) Init(ctx context.Context) error {
 
 	var (
 		conf    = configs.GetConfig()
-		db, err = sql.Open("pgx", conf.DatabaseDSN)
+		db, err = sqlx.Open("pgx", conf.DatabaseDSN)
 	)
 
 	if err != nil {
@@ -61,7 +61,7 @@ func (s *PgStorage) migration() error {
 		return err
 	}
 
-	if err := goose.Up(s.db, "migrations"); err != nil {
+	if err := goose.Up(s.db.DB, "migrations"); err != nil {
 		return err
 	}
 

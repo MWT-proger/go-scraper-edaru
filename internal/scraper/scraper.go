@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
@@ -310,7 +311,7 @@ func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
 }
 
 // Парсит и выводит список дочерних ингредиентов
-func (s *EdaRu) GetSubIngredientList(urlParentIngredient string, parentID int) ([]*models.Ingredient, error) {
+func (s *EdaRu) GetSubIngredientList(urlParentIngredient string, parentID sql.NullInt64) ([]*models.Ingredient, error) {
 	logger.Log.Debug("Scraper: Парсинг  дочерних ингредиентов ...")
 
 	var (

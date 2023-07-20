@@ -8,6 +8,7 @@ import (
 type IngredientStorage struct {
 	*storage.PgStorage
 	*storage.InsertPgStorage[*models.Ingredient]
+	*storage.GetByParametersPgStorage[*models.Ingredient]
 }
 
 type IngredientStorager interface {
@@ -17,6 +18,7 @@ type IngredientStorager interface {
 func New(baseStorage *storage.PgStorage) *IngredientStorage {
 	insertQuery := "INSERT INTO content.ingredient (id, name, description, href, parent_id, updated_at) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT (id) DO NOTHING RETURNING (id)"
 	insertRepo := storage.NewInsertPgStorage[*models.Ingredient](baseStorage, insertQuery)
+	geterRepo := storage.NewGetByParametersPgStorage[*models.Ingredient](baseStorage)
 
-	return &IngredientStorage{baseStorage, insertRepo}
+	return &IngredientStorage{baseStorage, insertRepo, geterRepo}
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/MWT-proger/go-scraper-edaru/internal/scraper"
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage"
@@ -17,8 +18,6 @@ func GetSaveNewCategories(ctx context.Context, storage *storage.PgStorage) error
 		categories       = scr.GetCategoryList()
 		categoryStorager = categorystorage.New(storage)
 	)
-	// categories := []*models.Category{}
-	// categories = append(categories, &models.Category{Slug: "123", Name: "123", Href: "234"})
 	categoryStorager.Insert(ctx, categories)
 
 	return nil
@@ -30,12 +29,20 @@ func GetSaveNewSubIngredients(ctx context.Context, storage *storage.PgStorage) e
 		ingredientStorager = ingredientstorage.New(storage)
 	)
 
-	ingredients, err := scr.GetSubIngredientList("/wiki/ingredienty/krupy-bobovye-muka/shokolad-14094", 14094)
+	parentIngredients, err := ingredientStorager.GetByParameters(ctx, "SELECT * FROM content.ingredient WHERE parent_id is null", map[string]interface{}{"parent": ""})
 
 	if err != nil {
 		return err
 	}
-	ingredientStorager.Insert(ctx, ingredients)
+
+	for _, v := range parentIngredients {
+		ingredients, err := scr.GetSubIngredientList(v.Href, sql.NullInt64{Int64: int64(v.ID), Valid: true})
+
+		if err != nil {
+			return err
+		}
+		ingredientStorager.Insert(ctx, ingredients)
+	}
 
 	return nil
 }
@@ -50,8 +57,6 @@ func GetSaveNewIngredients(ctx context.Context, storage *storage.PgStorage) erro
 	if err != nil {
 		return err
 	}
-	// categories := []*models.Ingredient{}
-	// categories = append(categories, &models.Ingredient{ID: 23, Name: "123", Href: "234", UpdatedAt: time.Now()})
 
 	ingredientStorager.Insert(ctx, ingredients)
 
