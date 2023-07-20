@@ -55,8 +55,9 @@ func run(ctx context.Context) error {
 
 	defer s.Close()
 
-	service.GetSaveNewCategories(ctx, s)
-	service.GetSaveNewIngredient(ctx, s)
+	// service.GetSaveNewCategories(ctx, s)
+	service.GetSaveNewIngredients(ctx, s)
+	// service.GetSaveNewRecepty(ctx, s)
 
 	return nil
 }

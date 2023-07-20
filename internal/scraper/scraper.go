@@ -184,7 +184,7 @@ func (s *EdaRu) GetRecepty(urlRecepty string) models.Recept {
 	return recept
 }
 
-// Парсит и выводит список ингредиентов
+// Парсит и выводит список ингредиентов основных
 func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
 	logger.Log.Debug("Scraper: Парсинг ингридиентов ...")
 
@@ -205,15 +205,23 @@ func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
 	subC.OnHTML(".emotion-17kxgoe", func(e *colly.HTMLElement) {
 		// Получение списка игредиентов по категории
 
-		name := e.ChildText(".emotion-wxopay a h2")
-		description := e.ChildText(".emotion-aus3ft")
+		var (
+			name        = e.ChildText(".emotion-wxopay a h2")
+			href        = e.ChildAttr(".emotion-wxopay a", "href")
+			description = e.ChildText(".emotion-aus3ft")
+			ss          = strings.Split(href, "-")
+			id, _       = strconv.Atoi(ss[len(ss)-1])
+		)
 
 		if name != "" {
 			countLocal++
 
 			listIngredient = append(listIngredient, &models.Ingredient{
+				ID:          id,
 				Name:        name,
 				Description: description,
+				Href:        href,
+				UpdatedAt:   time.Now(),
 			})
 		}
 
