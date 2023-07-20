@@ -24,6 +24,22 @@ func GetSaveNewCategories(ctx context.Context, storage *storage.PgStorage) error
 	return nil
 }
 
+func GetSaveNewSubIngredients(ctx context.Context, storage *storage.PgStorage) error {
+	var (
+		scr                = scraper.EdaRu{Domen: "eda.ru"}
+		ingredientStorager = ingredientstorage.New(storage)
+	)
+
+	ingredients, err := scr.GetSubIngredientList("/wiki/ingredienty/krupy-bobovye-muka/shokolad-14094", 14094)
+
+	if err != nil {
+		return err
+	}
+	ingredientStorager.Insert(ctx, ingredients)
+
+	return nil
+}
+
 func GetSaveNewIngredients(ctx context.Context, storage *storage.PgStorage) error {
 	var (
 		scr                = scraper.EdaRu{Domen: "eda.ru"}

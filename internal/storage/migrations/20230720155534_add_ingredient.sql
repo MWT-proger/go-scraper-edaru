@@ -4,7 +4,7 @@
 CREATE TABLE "content"."ingredient" (
     id  INTEGER PRIMARY KEY,
     name VARCHAR(100),
-    description VARCHAR(255),
+    description TEXT,
     href VARCHAR(255),
     parent_id INTEGER,
     updated_at timestamp with time zone NOT NULL

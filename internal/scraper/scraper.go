@@ -17,6 +17,16 @@ type EdaRu struct {
 	Domen string
 }
 
+func (s *EdaRu) initColly() *colly.Collector {
+
+	c := colly.NewCollector(colly.AllowedDomains(s.Domen))
+	c.Limit(&colly.LimitRule{
+		DomainGlob: s.Domen,
+		Delay:      3 * time.Second,
+	})
+	return c
+}
+
 func (s *EdaRu) GetCategoryList() []*models.Category {
 	logger.Log.Debug("Парсинг категорий рецептов ...")
 	listCategory := []*models.Category{}
@@ -186,7 +196,7 @@ func (s *EdaRu) GetRecepty(urlRecepty string) models.Recept {
 
 // Парсит и выводит список ингредиентов основных
 func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
-	logger.Log.Debug("Scraper: Парсинг ингридиентов ...")
+	logger.Log.Debug("Scraper: Парсинг ингредиентов ...")
 
 	var (
 		err            error
@@ -294,6 +304,56 @@ func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
 
 	logger.Log.Info(
 		"Scraper: Всего плучено Игредиентов",
+		zap.Int("количество", len(listIngredient)))
+
+	return listIngredient, nil
+}
+
+// Парсит и выводит список дочерних ингредиентов
+func (s *EdaRu) GetSubIngredientList(urlParentIngredient string, parentID int) ([]*models.Ingredient, error) {
+	logger.Log.Debug("Scraper: Парсинг  дочерних ингредиентов ...")
+
+	var (
+		// err            error
+		listIngredient = []*models.Ingredient{}
+		baseURL        = "https://" + s.Domen
+		countLocal     = 0
+		c              = s.initColly()
+	)
+
+	c.OnHTML(".emotion-h0bpot .emotion-h0bpot", func(e *colly.HTMLElement) {
+		// Получение категорий ингредиентов и переход на неё
+		var (
+			attrs       = e.ChildAttr("a", "href")
+			name        = e.ChildText(".emotion-1cyq6dp")
+			description = e.ChildText(".emotion-ketj7d span")
+			ss          = strings.Split(attrs, "/")
+			id, err     = strconv.Atoi(ss[len(ss)-1])
+		)
+
+		if err != nil {
+			return
+		}
+
+		if name != "" {
+			countLocal++
+
+			listIngredient = append(listIngredient, &models.Ingredient{
+				ID:          id,
+				Name:        name,
+				Description: description,
+				UpdatedAt:   time.Now(),
+				ParentId:    parentID,
+			})
+
+		}
+
+	})
+
+	c.Visit(baseURL + urlParentIngredient)
+
+	logger.Log.Info(
+		"Scraper: Всего плучено дочерних игредиентов",
 		zap.Int("количество", len(listIngredient)))
 
 	return listIngredient, nil
