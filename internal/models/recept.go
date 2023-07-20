@@ -20,17 +20,3 @@ func (Recept) GetType() string {
 func (c Recept) GetArgsInsert() []any {
 	return []any{c.ID, c.Name, c.CookingTime, c.Description, c.NumberServings, c.ImageSrc}
 }
-
-type CookingStage struct {
-	IDRecept    int    `db:"recept_id"`
-	Number      string `db:"number"`
-	Description string `db:"description"`
-}
-
-func (CookingStage) GetType() string {
-	return "CookingStage"
-}
-
-func (c CookingStage) GetArgsInsert() []any {
-	return []any{c.IDRecept, c.Number, c.Description}
-}

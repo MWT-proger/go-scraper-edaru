@@ -25,9 +25,3 @@ func (c Ingredient) GetArgsInsert() []any {
 		return []any{c.ID, c.Name, c.Description, c.Href, nil, c.UpdatedAt}
 	}
 }
-
-type IngredientRecept struct {
-	IDRecept   int
-	Quantity   string
-	Ingredient string
-}
