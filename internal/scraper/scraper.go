@@ -23,7 +23,7 @@ func (s *EdaRu) initColly() *colly.Collector {
 	c := colly.NewCollector(colly.AllowedDomains(s.Domen))
 	c.Limit(&colly.LimitRule{
 		DomainGlob: s.Domen,
-		Delay:      3 * time.Second,
+		Delay:      1 * time.Second,
 	})
 	return c
 }
@@ -50,10 +50,9 @@ func (s *EdaRu) GetCategoryList() []*models.Category {
 			name := h.ChildText("a h3")
 			number := h.ChildText("a h3 span")
 			category := models.Category{
-				Slug:       ParentSlug,
-				Name:       strings.ReplaceAll(name, number, ""),
-				Href:       href,
-				ParentSlug: "",
+				Slug: ParentSlug,
+				Name: strings.ReplaceAll(name, number, ""),
+				Href: href,
 			}
 			listCategory = append(listCategory, &category)
 		})
@@ -73,7 +72,7 @@ func (s *EdaRu) GetCategoryList() []*models.Category {
 				Slug:       slug,
 				Name:       strings.ReplaceAll(name, number, ""),
 				Href:       href,
-				ParentSlug: ParentSlug,
+				ParentSlug: sql.NullString{String: ParentSlug, Valid: true},
 			}
 
 			listCategory = append(listCategory, &category)
@@ -86,22 +85,26 @@ func (s *EdaRu) GetCategoryList() []*models.Category {
 	return listCategory
 }
 
-func (s *EdaRu) GetReceptyList(urlCategory string) int {
-
-	count := 0
-	allCount := 0
-	first := true
-
-	c := colly.NewCollector(
-		colly.AllowedDomains(s.Domen),
+func (s *EdaRu) GetReceptyList(urlCategory string, slugCategory string) ([]*models.Recept, error) {
+	logger.Log.Info(
+		"Scraper: Получение списка ссылок на рецепты...",
+	)
+	var (
+		count    = 0
+		allCount = 0
+		first    = true
+		baseURL  = "https://" + s.Domen
+		c        = s.initColly()
+		list     = []*models.Recept{}
 	)
 
 	c.OnHTML(".emotion-1jdotsv", func(h *colly.HTMLElement) {
 		if first {
-			fmt.Println(h.Text)
 			allCountString := h.Text
 			listStr := []string{
 				"Найдено ",
+				"Найден ",
+				"Найдены ",
 				" рецепта",
 				" рецептов",
 				" рецепт",
@@ -112,44 +115,70 @@ func (s *EdaRu) GetReceptyList(urlCategory string) int {
 			allCount, _ = strconv.Atoi(allCountString)
 
 			first = false
+			logger.Log.Info(
+				"Scraper: Всего рецептов по категории",
+				zap.String("Категория", slugCategory),
+				zap.Int("Всего", allCount),
+			)
 		}
 	})
 
 	c.OnHTML(".emotion-1eugp2w", func(h *colly.HTMLElement) {
 		categoryLinks := h.ChildAttrs("a", "href")
+
 		if categoryLinks == nil {
 			return
 		}
 
-		href := categoryLinks[0]
-		fmt.Println(href)
+		list = append(list, &models.Recept{Href: categoryLinks[0], CategorySlug: slugCategory})
+
 		count++
 	})
-	c.Visit(urlCategory)
+
+	c.Visit(baseURL + urlCategory)
+
+	lastCount := 0
+
 	if count != allCount {
 		fmt.Println("На первой странице не все рецепты")
-		for i := 2; count != allCount; i++ {
-			url := fmt.Sprintf("%s?page=%s", urlCategory, strconv.Itoa(i))
+
+		for i := 2; lastCount != count; i++ {
+			lastCount = count
+
+			url := fmt.Sprintf("%s?page=%s", baseURL+urlCategory, strconv.Itoa(i))
+
+			logger.Log.Info(
+				"Scraper: Получение рецептов...",
+				zap.Int("Получено", count),
+				zap.Int("Всего", allCount),
+				zap.String("Категория", slugCategory),
+			)
 			fmt.Println("Парсинг страницы № ", i)
+
 			c.Visit(url)
 		}
 	}
-
+	logger.Log.Info(
+		"Scraper: Получено рецептов",
+		zap.Int("Получено", count),
+		zap.Int("Всего", allCount),
+		zap.String("Категория", slugCategory),
+	)
 	fmt.Println("Выведено рецептов: ", count)
 
-	return count
+	return list, nil
 }
 
-func (s *EdaRu) GetRecepty(urlRecepty string) models.Recept {
-	ss := strings.Split(urlRecepty, "-")
-	id, _ := strconv.Atoi(ss[len(ss)-1])
-	recept := models.Recept{ID: id}
-	listIngredientRecepts := []models.IngredientRecept{}
-	listCookingStage := []models.CookingStage{}
-
-	c := colly.NewCollector(
-		colly.AllowedDomains(s.Domen),
+func (s *EdaRu) GetRecepty(recept *models.Recept) error {
+	var (
+		ss                    = strings.Split(recept.Href, "-")
+		id, _                 = strconv.Atoi(ss[len(ss)-1])
+		baseURL               = "https://" + s.Domen
+		listIngredientRecepts = []models.IngredientRecept{}
+		listCookingStage      = []models.CookingStage{}
+		c                     = s.initColly()
 	)
+	recept.ID = id
 
 	c.OnHTML("span[itemprop=resultPhoto]", func(h *colly.HTMLElement) {
 		recept.ImageSrc = h.Attr("content")
@@ -188,11 +217,12 @@ func (s *EdaRu) GetRecepty(urlRecepty string) models.Recept {
 
 	})
 
-	c.Visit(urlRecepty)
+	c.Visit(baseURL + recept.Href)
 
 	recept.CookingStages = listCookingStage
 	recept.Ingredients = listIngredientRecepts
-	return recept
+	fmt.Println(recept)
+	return nil
 }
 
 // Парсит и выводит список ингредиентов основных

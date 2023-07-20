@@ -20,7 +20,7 @@ func Initialize(level string) error {
 
 	cfg.Level = lvl
 	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
-	cfg.DisableCaller = true
+	cfg.DisableCaller = false
 
 	zl, err := cfg.Build()
 

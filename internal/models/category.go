@@ -1,10 +1,12 @@
 package models
 
+import "database/sql"
+
 type Category struct {
-	Slug       string
-	Name       string
-	Href       string
-	ParentSlug string
+	Slug       string         `db:"slug"`
+	Name       string         `db:"name"`
+	Href       string         `db:"href"`
+	ParentSlug sql.NullString `db:"parent_slug"`
 }
 
 func (Category) GetType() string {
@@ -12,7 +14,7 @@ func (Category) GetType() string {
 }
 
 func (c Category) GetArgsInsert() []any {
-	if c.ParentSlug != "" {
+	if c.ParentSlug.String != "" {
 		return []any{c.Slug, c.Name, c.Href, c.ParentSlug}
 	} else {
 		return []any{c.Slug, c.Name, c.Href, nil}
