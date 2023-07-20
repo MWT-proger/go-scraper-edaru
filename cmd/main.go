@@ -56,6 +56,7 @@ func run(ctx context.Context) error {
 	defer s.Close()
 
 	service.GetSaveNewCategories(ctx, s)
+	service.GetSaveNewIngredient(ctx, s)
 
 	return nil
 }

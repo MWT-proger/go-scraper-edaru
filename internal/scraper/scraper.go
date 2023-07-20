@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/gocolly/colly"
+	"go.uber.org/zap"
 
 	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
 	"github.com/MWT-proger/go-scraper-edaru/internal/models"
-	"github.com/gocolly/colly"
-	"go.uber.org/zap"
 )
 
 type EdaRu struct {
@@ -180,4 +182,111 @@ func (s *EdaRu) GetRecepty(urlRecepty string) models.Recept {
 	recept.CookingStages = listCookingStage
 	recept.Ingredients = listIngredientRecepts
 	return recept
+}
+
+// Парсит и выводит список ингредиентов
+func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
+	logger.Log.Debug("Scraper: Парсинг ингридиентов ...")
+
+	var (
+		err            error
+		listIngredient = []*models.Ingredient{}
+		baseURL        = "https://" + s.Domen + "/wiki/"
+		countLocal     = 0
+		c              = colly.NewCollector(colly.AllowedDomains(s.Domen))
+	)
+
+	c.Limit(&colly.LimitRule{
+		DomainGlob: s.Domen,
+		Delay:      3 * time.Second,
+	})
+
+	var subC = c.Clone()
+	subC.OnHTML(".emotion-17kxgoe", func(e *colly.HTMLElement) {
+		// Получение списка игредиентов по категории
+
+		name := e.ChildText(".emotion-wxopay a h2")
+		description := e.ChildText(".emotion-aus3ft")
+
+		if name != "" {
+			countLocal++
+
+			listIngredient = append(listIngredient, &models.Ingredient{
+				Name:        name,
+				Description: description,
+			})
+		}
+
+	})
+
+	c.OnHTML(".emotion-mvfezh", func(e *colly.HTMLElement) {
+		// Получение категорий ингредиентов и переход на неё
+		var (
+			attrs    = e.ChildAttrs(".emotion-1aag8k0 .emotion-1gwkmfw a", "href")
+			count    = e.ChildText("a .emotion-a0cecn")
+			countInt int
+			listStr  = []string{
+				" ингредиентов",
+				" ингредиента",
+				" ингредиент",
+				" ",
+			}
+		)
+
+		if attrs == nil {
+			return
+		}
+		for _, v := range listStr {
+			count = strings.ReplaceAll(count, v, "")
+		}
+
+		if count == "" {
+			return
+		}
+
+		countInt, err = strconv.Atoi(count)
+
+		if err != nil || countInt == 0 {
+			return
+		}
+		countLocal = 0
+		subC.Visit(baseURL + attrs[0])
+
+		logger.Log.Info(
+			"Scraper: Получение ингредиентов...",
+			zap.Int("Получено", countLocal),
+			zap.Int("Всего", countInt),
+			zap.String("Категория", attrs[0]),
+		)
+
+		lastCount := 0
+
+		if countLocal != countInt {
+
+			for i := 2; lastCount != countLocal; i++ {
+
+				lastCount = countLocal
+
+				url := fmt.Sprintf("%s?page=%s", baseURL+attrs[0], strconv.Itoa(i))
+
+				subC.Visit(url)
+
+				logger.Log.Info(
+					"Scraper: Получение ингредиентов...",
+					zap.Int("Получено", countLocal),
+					zap.Int("Всего", countInt),
+					zap.String("Категория", attrs[0]),
+				)
+			}
+		}
+
+	})
+
+	c.Visit(baseURL + "ingredienty")
+
+	logger.Log.Info(
+		"Scraper: Всего плучено Игредиентов",
+		zap.Int("количество", len(listIngredient)))
+
+	return listIngredient, nil
 }

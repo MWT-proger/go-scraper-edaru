@@ -1,7 +1,8 @@
 package models
 
 type Ingredient struct {
-	Name string
+	Name        string
+	Description string
 }
 
 type IngredientRecept struct {

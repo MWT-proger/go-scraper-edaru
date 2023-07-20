@@ -23,3 +23,12 @@ func GetSaveNewCategories(ctx context.Context, storage *storage.PgStorage) error
 
 	return nil
 }
+
+func GetSaveNewIngredient(ctx context.Context, storage *storage.PgStorage) error {
+	var (
+		scr = scraper.EdaRu{Domen: "eda.ru"}
+	)
+	scr.GetIngredientList()
+
+	return nil
+}
