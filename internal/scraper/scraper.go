@@ -5,16 +5,19 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
 	"github.com/MWT-proger/go-scraper-edaru/internal/models"
 	"github.com/gocolly/colly"
+	"go.uber.org/zap"
 )
 
 type EdaRu struct {
 	Domen string
 }
 
-func (s *EdaRu) GetCategoryList() []models.Category {
-	listCategory := []models.Category{}
+func (s *EdaRu) GetCategoryList() []*models.Category {
+	logger.Log.Debug("Парсинг категорий рецептов ...")
+	listCategory := []*models.Category{}
 
 	c := colly.NewCollector(
 		colly.AllowedDomains(s.Domen),
@@ -39,7 +42,7 @@ func (s *EdaRu) GetCategoryList() []models.Category {
 				Href:       href,
 				ParentSlug: "",
 			}
-			listCategory = append(listCategory, category)
+			listCategory = append(listCategory, &category)
 		})
 
 		e.ForEach(".emotion-8asrz1", func(_ int, h *colly.HTMLElement) {
@@ -60,12 +63,13 @@ func (s *EdaRu) GetCategoryList() []models.Category {
 				ParentSlug: ParentSlug,
 			}
 
-			listCategory = append(listCategory, category)
+			listCategory = append(listCategory, &category)
 		})
 
 	})
 	c.Visit("https://" + s.Domen)
 
+	logger.Log.Info("Категории получены", zap.Int("количество", len(listCategory)))
 	return listCategory
 }
 

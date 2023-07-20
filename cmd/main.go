@@ -2,12 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/MWT-proger/go-scraper-edaru/configs"
 	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
-	"github.com/MWT-proger/go-scraper-edaru/internal/scraper"
+	"github.com/MWT-proger/go-scraper-edaru/internal/service"
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage"
 )
 
@@ -56,10 +55,7 @@ func run(ctx context.Context) error {
 
 	defer s.Close()
 
-	scr := scraper.EdaRu{Domen: "eda.ru"}
-	// fmt.Println(scr.GetCategoryList())
-	fmt.Println(scr.GetReceptyList("https://eda.ru/recepty/gribnoi-bulyon"))
-	// fmt.Println(scr.GetRecepty("https://eda.ru/recepty/zavtraki/sirniki-iz-tvoroga-18506"))
+	service.GetSaveNewCategories(ctx, s)
 
 	return nil
 }

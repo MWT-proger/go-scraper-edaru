@@ -1,2 +1,3 @@
 deployments/.env
 .vscode
+cmd/test/

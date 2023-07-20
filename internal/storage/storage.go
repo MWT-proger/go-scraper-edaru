@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"embed"
 
-	"github.com/gocolly/colly/storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
@@ -17,35 +16,45 @@ import (
 var embedMigrations embed.FS
 
 type PgStorage struct {
-	storage.Storage
 	db *sql.DB
 }
 
+// Init(ctx context.Context) error Инициализирует соединение
+// и возвращает ошибку в случае не удачи
+// Вызывается при запуске программы
 func (s *PgStorage) Init(ctx context.Context) error {
-	conf := configs.GetConfig()
-	logger.Log.Info("Подключение к БД ...")
-	db, err := sql.Open("pgx", conf.DatabaseDSN)
+	logger.Log.Info("Хранилище: Подключение...")
+
+	var (
+		conf    = configs.GetConfig()
+		db, err = sql.Open("pgx", conf.DatabaseDSN)
+	)
+
 	if err != nil {
 		return err
 	}
+
 	s.db = db
 
-	if err := s.Ping(); err != nil {
+	if err := s.ping(); err != nil {
 		return err
 	}
 
-	if err := s.Migration(); err != nil {
+	if err := s.migration(); err != nil {
 		return err
 	}
-	logger.Log.Info("Соединение с БД установленно")
+	logger.Log.Info("Хранилище: Соединение установленно")
 
 	return nil
 
 }
 
 // Migration() проверяет новые миграции и при неообходимости добавляет в БД
-func (s *PgStorage) Migration() error {
-	logger.Log.Info("Проверка и обновление миграций ...")
+// и возвращает ошибку в случае не удачи
+// Вызывается при запуске программы
+func (s *PgStorage) migration() error {
+	logger.Log.Info("Хранилище: Проверка и обновление миграций ...")
+
 	goose.SetBaseFS(embedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -59,8 +68,9 @@ func (s *PgStorage) Migration() error {
 	return nil
 }
 
-func (s *PgStorage) Ping() error {
-	logger.Log.Info("Проверка соединения ...")
+// ping() error прверяет соединение и возвращает ошибку в случае не удачи
+func (s *PgStorage) ping() error {
+	logger.Log.Info("Хранилище: Проверка соединения ...")
 	if err := s.db.Ping(); err != nil {
 		return err
 	}
@@ -68,13 +78,15 @@ func (s *PgStorage) Ping() error {
 	return nil
 }
 
+// Close() error закрывает соединение и возвращает ошибку в случае не удачи
+// Вызывается при завершение программы
 func (s *PgStorage) Close() error {
-	logger.Log.Info("Закрытие соединения с БД ...")
+	logger.Log.Info("Хранилище: Закрытие соединения...")
 
 	if err := s.db.Close(); err != nil {
 		return err
 	}
-	logger.Log.Info("Соединение успешно закрыто")
+	logger.Log.Info("Хранилище: Соединение успешно закрыто")
 
 	return nil
 }
