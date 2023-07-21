@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
@@ -155,6 +156,17 @@ func GetSaveNewIngredients(ctx context.Context, storage *storage.PgStorage) erro
 		logger.Log.Error(err.Error())
 		return err
 	}
+
+	return nil
+}
+
+func GetSaveFileRecept(ctx context.Context, storage *storage.PgStorage) error {
+	var (
+		scr = scraper.EdaRu{Domen: "eda.ru"}
+	)
+
+	str := scr.DowloadFile("https://eda.ru/img/eda/1280x-/s1.eda.ru/StaticContent/Photos/120131082151/120214160719/p_O.jpg", "recepties", "testName")
+	fmt.Println(str)
 
 	return nil
 }

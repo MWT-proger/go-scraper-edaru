@@ -8,6 +8,7 @@ type Config struct {
 	LogLevel     string
 	DatabaseDSN  string `env:"DATABASE_DSN"`
 	DomenScraper string `env:"DOMEN_SCRAPER"`
+	BasePathDir  string `env:"BASE_PATH_DIR"`
 }
 
 var newConfig Config
@@ -19,6 +20,7 @@ func InitConfig() *Config {
 		LogLevel:     "info",
 		DatabaseDSN:  "",
 		DomenScraper: "eda.ru",
+		BasePathDir:  "./../data",
 	}
 	return &newConfig
 }
@@ -39,6 +41,9 @@ func SetConfigFromEnv() Config {
 	}
 	if envDomenScraper := os.Getenv("DOMEN_SCRAPER"); envDomenScraper != "" {
 		newConfig.DomenScraper = envDomenScraper
+	}
+	if envBasePathDir := os.Getenv("BASE_PATH_DIR"); envBasePathDir != "" {
+		newConfig.BasePathDir = envBasePathDir
 	}
 	return newConfig
 }

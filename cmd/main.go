@@ -58,7 +58,8 @@ func run(ctx context.Context) error {
 	// service.GetSaveNewCategories(ctx, s)
 	// service.GetSaveNewIngredients(ctx, s)
 	// service.GetSaveNewSubIngredients(ctx, s)
-	service.GetSaveNewRecepty(ctx, s)
+	// service.GetSaveNewRecepty(ctx, s)
+	service.GetSaveFileRecept(ctx, s)
 
 	return nil
 }
