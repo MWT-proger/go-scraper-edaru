@@ -1,9 +1,12 @@
 package models
 
+import "database/sql"
+
 type IngredientRecept struct {
-	IDRecept   int    `db:"recept_id"`
-	Quantity   string `db:"quantity"`
-	Ingredient string `db:"ingredient_id"`
+	IDRecept     int            `db:"recept_id"`
+	Quantity     sql.NullString `db:"quantity"`
+	IngredientID int            `db:"ingredient_id"`
+	Ingredient   string
 }
 
 func (IngredientRecept) GetType() string {
@@ -11,5 +14,6 @@ func (IngredientRecept) GetType() string {
 }
 
 func (c IngredientRecept) GetArgsInsert() []any {
-	return []any{c.IDRecept, c.Quantity, c.Ingredient}
+
+	return []any{c.IDRecept, c.Quantity, c.IngredientID}
 }

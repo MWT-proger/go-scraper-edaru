@@ -199,7 +199,7 @@ func (s *EdaRu) GetRecepty(recept *models.Recept) error {
 	c.OnHTML("div .emotion-7yevpr", func(h *colly.HTMLElement) {
 		ingredientRecept := models.IngredientRecept{
 			IDRecept:   recept.ID,
-			Quantity:   h.ChildText(".emotion-bsdd3p"),
+			Quantity:   sql.NullString{String: h.ChildText(".emotion-bsdd3p"), Valid: true},
 			Ingredient: h.ChildText("span[itemprop=recipeIngredient]"),
 		}
 		listIngredientRecepts = append(listIngredientRecepts, &ingredientRecept)
@@ -260,8 +260,8 @@ func (s *EdaRu) GetIngredientList() ([]*models.Ingredient, error) {
 			listIngredient = append(listIngredient, &models.Ingredient{
 				ID:          id,
 				Name:        name,
-				Description: description,
-				Href:        href,
+				Description: sql.NullString{String: description, Valid: true},
+				Href:        sql.NullString{String: href, Valid: true},
 				UpdatedAt:   time.Now(),
 			})
 		}
@@ -372,7 +372,7 @@ func (s *EdaRu) GetSubIngredientList(urlParentIngredient string, parentID sql.Nu
 			listIngredient = append(listIngredient, &models.Ingredient{
 				ID:          id,
 				Name:        name,
-				Description: description,
+				Description: sql.NullString{String: description, Valid: true},
 				UpdatedAt:   time.Now(),
 				ParentId:    parentID,
 			})

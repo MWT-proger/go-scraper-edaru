@@ -6,12 +6,12 @@ import (
 )
 
 type Ingredient struct {
-	ID          int           `db:"id"`
-	Name        string        `db:"name"`
-	Description string        `db:"description"`
-	Href        string        `db:"href"`
-	ParentId    sql.NullInt64 `db:"parent_id"`
-	UpdatedAt   time.Time     `db:"updated_at"`
+	ID          int            `db:"id"`
+	Name        string         `db:"name"`
+	Description sql.NullString `db:"description"`
+	Href        sql.NullString `db:"href"`
+	ParentId    sql.NullInt64  `db:"parent_id"`
+	UpdatedAt   time.Time      `db:"updated_at"`
 }
 
 func (Ingredient) GetType() string {
