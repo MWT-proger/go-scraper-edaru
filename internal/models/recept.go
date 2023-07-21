@@ -7,6 +7,7 @@ type Recept struct {
 	Description    string `db:"description"`
 	NumberServings string `db:"number_servings"`
 	ImageSrc       string `db:"image_src"`
+	Image          string `db:"image"`
 	Href           string
 	CategorySlug   string
 	Ingredients    []*IngredientRecept

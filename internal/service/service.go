@@ -3,7 +3,9 @@ package service
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
@@ -162,11 +164,38 @@ func GetSaveNewIngredients(ctx context.Context, storage *storage.PgStorage) erro
 
 func GetSaveFileRecept(ctx context.Context, storage *storage.PgStorage) error {
 	var (
-		scr = scraper.EdaRu{Domen: "eda.ru"}
+		scr             = scraper.EdaRu{Domen: "eda.ru"}
+		receptystorager = receptstorage.New(storage)
 	)
 
-	str := scr.DowloadFile("https://eda.ru/img/eda/1280x-/s1.eda.ru/StaticContent/Photos/120131082151/120214160719/p_O.jpg", "recepties", "testName")
-	fmt.Println(str)
+	recepties, err := receptystorager.GetByParameters(ctx,
+		"SELECT id, image_src FROM content.recept WHERE image IS NULL AND image_src IS NOT NULL ORDER BY id LIMIT 300 OFFSET 0;",
+		map[string]interface{}{})
+
+	if err != nil {
+		return err
+	}
+	for _, v := range recepties {
+		fmt.Println(v)
+		if v.ImageSrc == "" {
+			continue
+		}
+
+		str := scr.DowloadFile(v.ImageSrc, "recepties", strconv.Itoa(v.ID))
+
+		if str == "" {
+			return errors.New("file не загружен")
+		}
+
+		v.Image = str
+
+		if err := receptystorager.Update(ctx,
+			"UPDATE content.recept SET image=:path WHERE id=:id_recept", nil, v,
+			map[string]interface{}{"path": str, "id_recept": v.ID}); err != nil {
+			return err
+		}
+
+	}
 
 	return nil
 }
