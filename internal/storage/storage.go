@@ -49,6 +49,10 @@ func (s *PgStorage) Init(ctx context.Context) error {
 
 }
 
+func (s *PgStorage) GetDB() *sqlx.DB {
+	return s.db
+}
+
 // Migration() проверяет новые миграции и при неообходимости добавляет в БД
 // и возвращает ошибку в случае не удачи
 // Вызывается при запуске программы

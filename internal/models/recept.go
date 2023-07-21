@@ -9,8 +9,8 @@ type Recept struct {
 	ImageSrc       string `db:"image_src"`
 	Href           string
 	CategorySlug   string
-	Ingredients    []IngredientRecept
-	CookingStages  []CookingStage
+	Ingredients    []*IngredientRecept
+	CookingStages  []*CookingStage
 }
 
 func (Recept) GetType() string {

@@ -174,8 +174,8 @@ func (s *EdaRu) GetRecepty(recept *models.Recept) error {
 		ss                    = strings.Split(recept.Href, "-")
 		id, _                 = strconv.Atoi(ss[len(ss)-1])
 		baseURL               = "https://" + s.Domen
-		listIngredientRecepts = []models.IngredientRecept{}
-		listCookingStage      = []models.CookingStage{}
+		listIngredientRecepts = []*models.IngredientRecept{}
+		listCookingStage      = []*models.CookingStage{}
 		c                     = s.initColly()
 	)
 	recept.ID = id
@@ -202,7 +202,7 @@ func (s *EdaRu) GetRecepty(recept *models.Recept) error {
 			Quantity:   h.ChildText(".emotion-bsdd3p"),
 			Ingredient: h.ChildText("span[itemprop=recipeIngredient]"),
 		}
-		listIngredientRecepts = append(listIngredientRecepts, ingredientRecept)
+		listIngredientRecepts = append(listIngredientRecepts, &ingredientRecept)
 
 	})
 
@@ -213,7 +213,7 @@ func (s *EdaRu) GetRecepty(recept *models.Recept) error {
 			Number:      h.ChildText(".emotion-xhemb9"),
 			Description: h.ChildText(".emotion-1dvddtv span"),
 		}
-		listCookingStage = append(listCookingStage, cookingStage)
+		listCookingStage = append(listCookingStage, &cookingStage)
 
 	})
 

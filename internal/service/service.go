@@ -5,9 +5,11 @@ import (
 	"database/sql"
 
 	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
+	"github.com/MWT-proger/go-scraper-edaru/internal/models"
 	"github.com/MWT-proger/go-scraper-edaru/internal/scraper"
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage"
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage/categorystorage"
+	"github.com/MWT-proger/go-scraper-edaru/internal/storage/ingredientreceptstorage"
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage/ingredientstorage"
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage/receptstorage"
 )
@@ -20,7 +22,7 @@ func GetSaveNewCategories(ctx context.Context, storage *storage.PgStorage) error
 		categories       = scr.GetCategoryList()
 		categoryStorager = categorystorage.New(storage)
 	)
-	if err := categoryStorager.Insert(ctx, categories); err != nil {
+	if err := categoryStorager.Insert(ctx, nil, categories); err != nil {
 		logger.Log.Error(err.Error())
 		return err
 	}
@@ -46,7 +48,7 @@ func GetSaveNewSubIngredients(ctx context.Context, storage *storage.PgStorage) e
 		if err != nil {
 			return err
 		}
-		ingredientStorager.Insert(ctx, ingredients)
+		ingredientStorager.Insert(ctx, nil, ingredients)
 	}
 
 	return nil
@@ -54,17 +56,21 @@ func GetSaveNewSubIngredients(ctx context.Context, storage *storage.PgStorage) e
 
 func GetSaveNewRecepty(ctx context.Context, storage *storage.PgStorage) error {
 	var (
-		scr              = scraper.EdaRu{Domen: "eda.ru"}
-		categorystorager = categorystorage.New(storage)
-		receptystorager  = receptstorage.New(storage)
+		scr = scraper.EdaRu{Domen: "eda.ru"}
+		// categorystorager = categorystorage.New(storage)
+		receptystorager          = receptstorage.New(storage)
+		ingredientreceptstorager = ingredientreceptstorage.New(storage)
+		// receptcategoryer         = receptcategorystorage.New(storage)
 	)
 
-	categories, err := categorystorager.GetByParameters(ctx, "SELECT * FROM content.category", map[string]interface{}{})
+	// categories, err := categorystorager.GetByParameters(ctx, "SELECT * FROM content.category", map[string]interface{}{})
 
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 
+	categories := []*models.Category{}
+	categories = append(categories, &models.Category{Href: "/recepty/pineapple-salads", Slug: "pineapple-salads"})
 	for _, v := range categories {
 		recepties, err := scr.GetReceptyList(v.Href, v.Slug)
 
@@ -77,7 +83,24 @@ func GetSaveNewRecepty(ctx context.Context, storage *storage.PgStorage) error {
 				return err
 			}
 		}
-		receptystorager.Insert(ctx, recepties)
+
+		tx, err := storage.GetDB().BeginTx(ctx, nil)
+
+		if err != nil {
+			return err
+		}
+
+		defer tx.Rollback()
+
+		receptystorager.Insert(ctx, tx, recepties)
+
+		for _, v := range recepties {
+			ingredientreceptstorager.Insert(ctx, tx, v.Ingredients)
+			// receptcategoryer.Insert(ctx, tx, []*models.ReceptCategory{&models.ReceptCategory{ReceptID: v.ID, CategorySlug: v.CategorySlug}})
+		}
+		if err := tx.Commit(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -94,7 +117,7 @@ func GetSaveNewIngredients(ctx context.Context, storage *storage.PgStorage) erro
 		return err
 	}
 
-	ingredientStorager.Insert(ctx, ingredients)
+	ingredientStorager.Insert(ctx, nil, ingredients)
 
 	return nil
 }
