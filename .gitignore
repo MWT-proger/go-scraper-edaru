@@ -2,4 +2,4 @@ deployments/.env
 .vscode
 cmd/test/
 cmd/__debug_bin
-data/recepties
+data/

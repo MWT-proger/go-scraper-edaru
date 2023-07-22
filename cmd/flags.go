@@ -12,5 +12,6 @@ func parseFlags(conf *configs.Config) {
 	flag.StringVar(&conf.DatabaseDSN, "d", conf.DatabaseDSN, "строка с адресом подключения к БД")
 	flag.StringVar(&conf.LogLevel, "l", "info", "уровень логирования")
 	flag.StringVar(&conf.BasePathDir, "p", conf.BasePathDir, "путь каталога для сохранения файлов")
+	flag.StringVar(&conf.FileScenario, "s", conf.FileScenario, "Сценарий парсинга")
 	flag.Parse()
 }

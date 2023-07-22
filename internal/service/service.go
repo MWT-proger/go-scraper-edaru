@@ -66,8 +66,8 @@ func GetSaveNewSubIngredients(ctx context.Context, storage *storage.PgStorage) e
 
 func GetSaveNewRecepty(ctx context.Context, storage *storage.PgStorage) error {
 	var (
-		scr = scraper.EdaRu{Domen: "eda.ru"}
-		// categorystorager         = categorystorage.New(storage)
+		scr                      = scraper.EdaRu{Domen: "eda.ru"}
+		categorystorager         = categorystorage.New(storage)
 		receptystorager          = receptstorage.New(storage)
 		ingredientreceptstorager = ingredientreceptstorage.New(storage)
 		receptcategoryer         = receptcategorystorage.New(storage)
@@ -75,13 +75,13 @@ func GetSaveNewRecepty(ctx context.Context, storage *storage.PgStorage) error {
 		ingredientStorager       = ingredientstorage.New(storage)
 	)
 
-	// categories, err := categorystorager.GetByParameters(ctx, "SELECT * FROM content.category", map[string]interface{}{})
+	categories, err := categorystorager.GetByParameters(ctx, "SELECT * FROM content.category", map[string]interface{}{})
 
-	// if err != nil {
-	// 	return err
-	// }
-	categories := []*models.Category{}
-	categories = append(categories, &models.Category{Href: "/recepty/tomatnij-sous", Slug: "tomatnij-sous"})
+	if err != nil {
+		return err
+	}
+	// categories := []*models.Category{}
+	// categories = append(categories, &models.Category{Href: "/recepty/tomatnij-sous", Slug: "tomatnij-sous"})
 
 	for _, v := range categories {
 		recepties, err := scr.GetReceptyList(v.Href, v.Slug)
@@ -118,7 +118,8 @@ func GetSaveNewRecepty(ctx context.Context, storage *storage.PgStorage) error {
 					return err
 				}
 				if len(ingredient) == 0 {
-					newIngredient := models.Ingredient{ID: int(time.Now().UnixMicro()), Name: ing.Ingredient}
+					time.Sleep(1 * time.Second)
+					newIngredient := models.Ingredient{ID: int(time.Now().Unix()), Name: ing.Ingredient}
 
 					ingredientStorager.Insert(ctx, tx, []*models.Ingredient{&newIngredient})
 
@@ -169,7 +170,8 @@ func GetSaveFileRecept(ctx context.Context, storage *storage.PgStorage) error {
 	)
 
 	recepties, err := receptystorager.GetByParameters(ctx,
-		"SELECT id, image_src FROM content.recept WHERE image IS NULL AND image_src IS NOT NULL ORDER BY id LIMIT 300 OFFSET 0;",
+		"SELECT id, image_src FROM content.recept WHERE image IS NULL AND image_src IS NOT NULL ORDER BY id;",
+		// LIMIT 300 OFFSET 0
 		map[string]interface{}{})
 
 	if err != nil {

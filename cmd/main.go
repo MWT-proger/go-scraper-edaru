@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/MWT-proger/go-scraper-edaru/configs"
@@ -55,9 +56,16 @@ func run(ctx context.Context) error {
 
 	defer s.Close()
 
-	// service.GetSaveNewCategories(ctx, s)
+	scenario, err := configs.GetScenario()
+
+	if err != nil {
+		return err
+	}
+	fmt.Println(scenario)
+
 	// service.GetSaveNewIngredients(ctx, s)
 	// service.GetSaveNewSubIngredients(ctx, s)
+	// service.GetSaveNewCategories(ctx, s)
 	// service.GetSaveNewRecepty(ctx, s)
 	service.GetSaveFileRecept(ctx, s)
 
