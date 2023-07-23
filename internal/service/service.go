@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -173,7 +172,7 @@ func GetSaveFileRecept(ctx context.Context, storage *storage.PgStorage) error {
 		return err
 	}
 	for _, v := range recepties {
-		fmt.Println(v)
+
 		if v.ImageSrc == "" {
 			continue
 		}

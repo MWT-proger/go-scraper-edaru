@@ -67,7 +67,7 @@ func (s *EdaRu) GetReceptyList(urlCategory string, slugCategory string) ([]*mode
 	lastCount := 0
 
 	if count != allCount {
-		fmt.Println("На первой странице не все рецепты")
+		logger.Log.Debug("Scraper: На первой странице не все рецепты")
 
 		for i := 2; lastCount != count; i++ {
 			lastCount = count
@@ -80,7 +80,7 @@ func (s *EdaRu) GetReceptyList(urlCategory string, slugCategory string) ([]*mode
 				zap.Int("Всего", allCount),
 				zap.String("Категория", slugCategory),
 			)
-			fmt.Println("Парсинг страницы № ", i)
+			logger.Log.Debug("Scraper: Парсинг", zap.Int("страница", i))
 
 			c.Visit(url)
 		}
@@ -91,7 +91,6 @@ func (s *EdaRu) GetReceptyList(urlCategory string, slugCategory string) ([]*mode
 		zap.Int("Всего", allCount),
 		zap.String("Категория", slugCategory),
 	)
-	fmt.Println("Выведено рецептов: ", count)
 
 	return list, nil
 }
@@ -148,6 +147,5 @@ func (s *EdaRu) GetRecepty(recept *models.Recept) error {
 
 	recept.CookingStages = listCookingStage
 	recept.Ingredients = listIngredientRecepts
-	fmt.Println(recept)
 	return nil
 }

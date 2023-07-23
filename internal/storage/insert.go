@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
 	"github.com/MWT-proger/go-scraper-edaru/internal/models"
@@ -57,7 +56,6 @@ func (s *InsertPgStorage[E]) Insert(ctx context.Context, txBig *sql.Tx, objs []E
 
 	count := 0
 	for _, v := range objs {
-		fmt.Println(v)
 
 		res, err := stmt.ExecContext(ctx, v.GetArgsInsert()...)
 

@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/MWT-proger/go-scraper-edaru/configs"
 	"github.com/gocolly/colly"
+
+	"github.com/MWT-proger/go-scraper-edaru/configs"
+	"github.com/MWT-proger/go-scraper-edaru/internal/logger"
 )
 
 func (s *EdaRu) DowloadFile(hrefImage string, dirName string, fileName string) string {
@@ -21,6 +23,7 @@ func (s *EdaRu) DowloadFile(hrefImage string, dirName string, fileName string) s
 		extension, ok := alowedContentType[r.Headers.Get("Content-Type")]
 
 		if !ok {
+			logger.Log.Error("Ссылка на картинку не имеет разрешенного Content-Type")
 			return
 		}
 
@@ -28,7 +31,7 @@ func (s *EdaRu) DowloadFile(hrefImage string, dirName string, fileName string) s
 
 		if err := os.WriteFile(pathFile, r.Body, 0644); err != nil {
 			pathFile = ""
-			fmt.Println(err)
+			logger.Log.Error(err.Error())
 			return
 		}
 	})
