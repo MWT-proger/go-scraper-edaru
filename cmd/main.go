@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/MWT-proger/go-scraper-edaru/configs"
@@ -20,7 +19,13 @@ func initProject(ctx context.Context) (*storage.PgStorage, error) {
 
 	parseFlags(configInit)
 
-	conf := configs.SetConfigFromEnv()
+	configs.SetConfigFromEnv()
+
+	conf, err := configs.ValidateConfig()
+
+	if err != nil {
+		return nil, err
+	}
 
 	if err := logger.Initialize(conf.LogLevel); err != nil {
 		return nil, err
@@ -61,13 +66,27 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(scenario)
 
-	// service.GetSaveNewIngredients(ctx, s)
-	// service.GetSaveNewSubIngredients(ctx, s)
-	// service.GetSaveNewCategories(ctx, s)
-	// service.GetSaveNewRecepty(ctx, s)
-	service.GetSaveFileRecept(ctx, s)
+	if v, ok := scenario["ingredients"]; ok && v == 1 {
+		log.Println("Парсинг и загрузка Ингредиентов ВКЛ")
+		service.GetSaveNewIngredients(ctx, s)
+	}
+	if v, ok := scenario["sub_ingredients"]; ok && v == 1 {
+		log.Println("Парсинг и загрузка Дочерних ингредиентов ВКЛ")
+		service.GetSaveNewSubIngredients(ctx, s)
+	}
+	if v, ok := scenario["categories"]; ok && v == 1 {
+		log.Println("Парсинг и загрузка Категорий ВКЛ")
+		service.GetSaveNewCategories(ctx, s)
+	}
+	if v, ok := scenario["recipes"]; ok && v == 1 {
+		log.Println("Парсинг и загрузка Рецептов ВКЛ")
+		service.GetSaveNewRecepty(ctx, s)
+	}
+	if v, ok := scenario["file_recipes"]; ok && v == 1 {
+		log.Println("Парсинг и загрузка Файлов рецептов ВКЛ")
+		service.GetSaveFileRecept(ctx, s)
+	}
 
 	return nil
 }

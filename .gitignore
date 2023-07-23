@@ -3,3 +3,4 @@ deployments/.env
 cmd/test/
 cmd/__debug_bin
 data/
+scenario.json

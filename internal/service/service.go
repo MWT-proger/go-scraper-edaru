@@ -20,8 +20,6 @@ import (
 	"github.com/MWT-proger/go-scraper-edaru/internal/storage/receptstorage"
 )
 
-// fmt.Println(scr.GetReceptyList("https://eda.ru/recepty/gribnoi-bulyon"))
-
 func GetSaveNewCategories(ctx context.Context, storage *storage.PgStorage) error {
 	var (
 		scr              = scraper.EdaRu{Domen: "eda.ru"}
@@ -80,8 +78,6 @@ func GetSaveNewRecepty(ctx context.Context, storage *storage.PgStorage) error {
 	if err != nil {
 		return err
 	}
-	// categories := []*models.Category{}
-	// categories = append(categories, &models.Category{Href: "/recepty/tomatnij-sous", Slug: "tomatnij-sous"})
 
 	for _, v := range categories {
 		recepties, err := scr.GetReceptyList(v.Href, v.Slug)
@@ -171,7 +167,6 @@ func GetSaveFileRecept(ctx context.Context, storage *storage.PgStorage) error {
 
 	recepties, err := receptystorager.GetByParameters(ctx,
 		"SELECT id, image_src FROM content.recept WHERE image IS NULL AND image_src IS NOT NULL ORDER BY id;",
-		// LIMIT 300 OFFSET 0
 		map[string]interface{}{})
 
 	if err != nil {

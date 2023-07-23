@@ -1,8 +1,6 @@
 package logger
 
 import (
-	"time"
-
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -19,8 +17,8 @@ func Initialize(level string) error {
 	cfg := zap.NewProductionConfig()
 
 	cfg.Level = lvl
-	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout(time.RFC3339)
-	cfg.DisableCaller = false
+	cfg.EncoderConfig.EncodeTime = zapcore.TimeEncoderOfLayout("15:04:05 MST")
+	cfg.DisableCaller = true
 
 	zl, err := cfg.Build()
 

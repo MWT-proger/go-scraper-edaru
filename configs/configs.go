@@ -23,8 +23,8 @@ func InitConfig() *Config {
 		LogLevel:     "info",
 		DatabaseDSN:  "",
 		DomenScraper: "eda.ru",
-		BasePathDir:  "./../data",
-		FileScenario: "./../scenario.json",
+		BasePathDir:  "data",
+		FileScenario: "",
 	}
 	return &newConfig
 }
@@ -34,7 +34,7 @@ func GetConfig() Config {
 	return newConfig
 }
 
-// SetConfigFromEnv() Прсваевает полям значения из ENV
+// SetConfigFromEnv() Присваевает полям значения из ENV
 // Вызывается один раз при старте проекта
 func SetConfigFromEnv() Config {
 	if envLogLevel := os.Getenv("LOG_LEVEL"); envLogLevel != "" {
@@ -55,8 +55,18 @@ func SetConfigFromEnv() Config {
 	return newConfig
 }
 
-func GetScenario() (map[string]interface{}, error) {
-	var data map[string]interface{}
+// GetScenario() выводит сценапий парсинга
+func GetScenario() (map[string]int, error) {
+	data := make(map[string]int)
+
+	if newConfig.FileScenario == "" {
+		data["ingredients"] = 1
+		data["sub_ingredients"] = 1
+		data["categories"] = 1
+		data["recipes"] = 1
+		data["file_recipes"] = 1
+		return data, nil
+	}
 	f, err := os.ReadFile(newConfig.FileScenario)
 
 	if err != nil {
@@ -69,4 +79,15 @@ func GetScenario() (map[string]interface{}, error) {
 
 	return data, nil
 
+}
+
+// GetScenario() проверяет обязательные переменные
+func ValidateConfig() (Config, error) {
+
+	if newConfig.DatabaseDSN == "" {
+		return Config{}, errors.New("необходимо указать параметры подключения к БД")
+
+	}
+
+	return newConfig, nil
 }
